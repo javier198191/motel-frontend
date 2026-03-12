@@ -1,0 +1,132 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Hotel, Wallet, Package, LogOut, UserCircle, Lock } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+
+export default function Navbar() {
+    const pathname = usePathname();
+    const { user: usuarioActual, logoutAction } = useAuth();
+
+    // No mostrar navbar en login
+    if (pathname === "/login" || pathname === "/") return null;
+
+    const links = [
+        {
+            href: "/recepcion",
+            label: "Recepción",
+            icon: <Hotel className="w-5 h-5" />,
+            roles: ['ADMIN', 'RECEPCION']
+        },
+        {
+            href: "/caja",
+            label: "Control de Caja",
+            icon: <Wallet className="w-5 h-5" />,
+            roles: ['ADMIN', 'RECEPCION']
+        }
+    ];
+
+    // Lógica para filtrar los links que el usuario SÍ puede ver
+    // Si usuarioActual es null (ej. renderizando en servidor o token no cargado), mostramos vacío por defecto
+    const allowedLinks = usuarioActual ? links.filter(link => link.roles.includes(usuarioActual.rol)) : [];
+
+    const handleLogout = () => {
+        logoutAction();
+    };
+
+    return (
+        <nav className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex justify-between h-16">
+                    <div className="flex w-full items-center gap-6">
+                        <div className="flex-shrink-0 flex items-center mr-4">
+                            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                                MotelAdmin
+                            </span>
+                        </div>
+
+                        <div className="flex space-x-2">
+                            {allowedLinks.map((link) => {
+                                const isActive = pathname === link.href;
+                                return (
+                                    <Link
+                                        key={link.href}
+                                        href={link.href}
+                                        className={`inline-flex items-center gap-2 px-4 py-2 mt-1 rounded-lg text-sm font-bold transition-all ${isActive
+                                                ? "bg-slate-800 text-white shadow-sm pointer-events-none"
+                                                : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                                            }`}
+                                    >
+                                        <span className={`${isActive ? "text-blue-400" : "text-gray-400 group-hover:text-gray-600"}`}>
+                                            {link.icon}
+                                        </span>
+                                        {link.label}
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Right side: Secondary Links, User Profile & Logout */}
+                    <div className="flex items-center gap-4">
+                        {/* Admin Links (Discreet) */}
+                        <div className="hidden sm:flex items-center gap-2">
+                            <Link
+                                href="/admin/habitaciones"
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                                    pathname === "/admin/habitaciones"
+                                        ? "bg-indigo-50 border-indigo-200 text-indigo-700 shadow-sm"
+                                        : "bg-white border-gray-200 text-gray-500 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300"
+                                }`}
+                                title="Habitaciones (Solo Admin)"
+                            >
+                                <Lock className="w-3.5 h-3.5 opacity-70" />
+                                <span>Habitaciones</span>
+                            </Link>
+
+                            <Link
+                                href="/admin/productos"
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                                    pathname === "/admin/productos"
+                                        ? "bg-indigo-50 border-indigo-200 text-indigo-700 shadow-sm"
+                                        : "bg-white border-gray-200 text-gray-500 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300"
+                                }`}
+                                title="Inventario Minibar (Solo Admin)"
+                            >
+                                <Lock className="w-3.5 h-3.5 opacity-70" />
+                                <span>Inventario</span>
+                            </Link>
+                        </div>
+
+                        <div className="w-px h-8 bg-gray-200 hidden sm:block"></div>
+
+                        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-lg border border-gray-100 min-w-[120px] justify-end">
+                            {usuarioActual ? (
+                                <>
+                                    <UserCircle className="w-5 h-5 text-gray-400" />
+                                    <div className="flex flex-col text-right">
+                                        <span className="text-xs font-bold text-gray-900 leading-none">{usuarioActual.nombre}</span>
+                                        <span className="text-[10px] font-bold text-blue-600 tracking-wider mt-0.5">{usuarioActual.rol}</span>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="animate-pulse flex space-x-2 w-full justify-end">
+                                    <div className="h-4 bg-gray-200 rounded w-16"></div>
+                                </div>
+                            )}
+                        </div>
+
+                        <button 
+                            onClick={handleLogout}
+                            className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all hover:scale-105 active:scale-95 hover:shadow-sm"
+                        >
+                            <LogOut className="w-4 h-4" />
+                            <span className="hidden sm:inline">Cerrar Sesión</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    );
+}

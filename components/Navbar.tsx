@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Hotel, Wallet, Package, LogOut, UserCircle, Lock } from "lucide-react";
+import { Hotel, Wallet, Package, LogOut, UserCircle, Lock, FileText } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 export default function Navbar() {
@@ -23,6 +23,12 @@ export default function Navbar() {
             href: "/caja",
             label: "Control de Caja",
             icon: <Wallet className="w-5 h-5" />,
+            roles: ['ADMIN', 'RECEPCION']
+        },
+        {
+            href: "/dian",
+            label: "Facturación DIAN",
+            icon: <FileText className="w-5 h-5" />,
             roles: ['ADMIN', 'RECEPCION']
         }
     ];

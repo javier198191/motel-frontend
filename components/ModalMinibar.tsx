@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { X, Loader2, ShoppingCart, AlertCircle, Package, Search, Plus, Minus, Trash2, Receipt } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 interface Producto {
     id: number;
@@ -85,7 +86,7 @@ export default function ModalMinibar({ estadiaId, habitacionNumero, onClose, onS
             const existingItem = prevCart.find(item => item.producto.id === producto.id);
             if (existingItem) {
                 if (existingItem.cantidad >= producto.stock) {
-                    alert(`No puedes agregar más. El stock máximo de ${producto.nombre} es ${producto.stock}.`);
+                    toast.error(`No puedes agregar más. El stock máximo de ${producto.nombre} es ${producto.stock}.`);
                     return prevCart;
                 }
                 return prevCart.map(item =>
@@ -105,7 +106,7 @@ export default function ModalMinibar({ estadiaId, habitacionNumero, onClose, onS
                     const newQuantity = item.cantidad + delta;
                     if (newQuantity < 1) return item; // Cannot have less than 1 if in cart
                     if (newQuantity > item.producto.stock) {
-                        alert(`Stock máximo alcanzado para ${item.producto.nombre}.`);
+                        toast.error(`Stock máximo alcanzado para ${item.producto.nombre}.`);
                         return item;
                     }
                     return { ...item, cantidad: newQuantity };
@@ -156,18 +157,18 @@ export default function ModalMinibar({ estadiaId, habitacionNumero, onClose, onS
                     const errorData = await errors[0].json();
                     alertMsg = errorData.message || alertMsg;
                 } catch (e) { }
-                alert(alertMsg);
+                toast.error(alertMsg);
                 return; // Detenemos aquí si hubo errores
             }
 
             // Exito Total
-            alert(`✅ Se registraron con éxito ${totalItems} consumos a la habitación ${habitacionNumero}.`);
+            toast.success(`Se registraron con éxito ${totalItems} consumos a la habitación ${habitacionNumero}.`);
             setCart([]);
             if (onSuccess) onSuccess();
 
         } catch (error) {
             console.error(error);
-            alert("Error crítico de red durante el checkout.");
+            toast.error("Error crítico de red durante el checkout.");
         } finally {
             setIsCheckingOut(false);
         }

@@ -7,6 +7,7 @@ import {
   Loader2, AlertCircle, Search, PackagePlus, CheckCircle2, 
   X, ShieldAlert
 } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 interface Producto {
   id: number;
@@ -33,14 +34,6 @@ export default function AdminProductosPage() {
 
   // Estados de carga de formularios
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Toast
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
-
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3500);
-  };
 
   const fetchProductos = async () => {
     try {
@@ -110,11 +103,11 @@ export default function AdminProductosPage() {
         throw new Error(msg);
       }
 
-      showToast("Producto creado con éxito", "success");
+      toast.success("Producto creado con éxito");
       setIsCreateModalOpen(false);
       fetchProductos();
     } catch (error: any) {
-      showToast(error.message, "error");
+      toast.error(error.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -147,11 +140,11 @@ export default function AdminProductosPage() {
         throw new Error(msg);
       }
 
-      showToast("Producto actualizado con éxito", "success");
+      toast.success("Producto actualizado con éxito");
       setEditingProducto(null);
       fetchProductos();
     } catch (error: any) {
-      showToast(error.message, "error");
+      toast.error(error.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -182,11 +175,11 @@ export default function AdminProductosPage() {
         throw new Error(msg);
       }
 
-      showToast(`${cantidad} unidades agregadas a ${stockProducto.nombre}`, "success");
+      toast.success(`${cantidad} unidades agregadas a ${stockProducto.nombre}`);
       setStockProducto(null);
       fetchProductos();
     } catch (error: any) {
-      showToast(error.message, "error");
+      toast.error(error.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -221,14 +214,6 @@ export default function AdminProductosPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-6 md:p-10 font-sans text-gray-900">
       
-      {/* Toasts */}
-      {toast && (
-        <div className={`fixed top-5 right-5 z-[999] px-6 py-4 rounded-xl shadow-xl flex items-center gap-3 animate-in slide-in-from-top-4 fade-in duration-300 font-medium text-white ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'}`}>
-           {toast.type === 'success' ? <CheckCircle2 className="w-6 h-6" /> : <AlertCircle className="w-6 h-6" />}
-           {toast.message}
-        </div>
-      )}
-
       <div className="max-w-7xl mx-auto space-y-8">
         
         {/* Header Section */}

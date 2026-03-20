@@ -7,6 +7,7 @@ import {
   Settings2, Home, X, Edit
 } from "lucide-react";
 import api from "@/lib/api";
+import { toast } from "react-hot-toast";
 
 import { TiposTable, TipoHabitacion } from "@/components/admin/habitaciones/TiposTable";
 import { TipoModal } from "@/components/admin/habitaciones/TipoModal";
@@ -39,12 +40,6 @@ export default function AdminHabitacionesPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isForbidden, setIsForbidden] = useState(false);
   const [errorHeader, setErrorHeader] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
-
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3500);
-  };
 
   // FETCH DATA
   const fetchTipos = async () => {
@@ -119,17 +114,17 @@ export default function AdminHabitacionesPage() {
       setIsSubmitting(true);
       if (editingTipo) {
          await api.patch('/tipo-habitaciones/' + editingTipo.id, payload);
-         showToast("Categoría actualizada", "success");
+         toast.success("Categoría actualizada");
       } else {
          await api.post('/tipo-habitaciones', payload);
-         showToast("Categoría creada con éxito", "success");
+         toast.success("Categoría creada con éxito");
       }
       setIsTiposModalOpen(false);
       setEditingTipo(null);
       fetchTipos();
     } catch (error: any) {
       const msg = error.response?.data?.message || "Error al crear el Tipo de Habitación";
-      showToast(Array.isArray(msg) ? msg[0] : msg, "error");
+      toast.error(Array.isArray(msg) ? msg[0] : msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -149,17 +144,17 @@ export default function AdminHabitacionesPage() {
       setIsSubmitting(true);
       if (editingHabitacion) {
           await api.patch('/habitaciones/' + editingHabitacion.id, payload);
-          showToast(`Habitación ${payload.numero} actualizada`, "success");
+          toast.success(`Habitación ${payload.numero} actualizada`);
       } else {
           await api.post('/habitaciones', payload);
-          showToast(`Habitación ${payload.numero} añadida`, "success");
+          toast.success(`Habitación ${payload.numero} añadida`);
       }
       setIsHabitacionesModalOpen(false);
       setEditingHabitacion(null);
       fetchHabitaciones();
     } catch (error: any) {
       const msg = error.response?.data?.message || "Error al añadir la Habitación";
-      showToast(Array.isArray(msg) ? msg[0] : msg, "error");
+      toast.error(Array.isArray(msg) ? msg[0] : msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -190,13 +185,6 @@ export default function AdminHabitacionesPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-6 md:p-10 font-sans text-gray-900">
       
-      {toast && (
-        <div className={`fixed top-5 right-5 z-[999] px-6 py-4 rounded-xl shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 font-medium text-white ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'}`}>
-           {toast.type === 'success' ? <CheckCircle2 className="w-6 h-6" /> : <AlertCircle className="w-6 h-6" />}
-           {toast.message}
-        </div>
-      )}
-
       <div className="max-w-7xl mx-auto space-y-6">
         
         <header className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">

@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { io, Socket } from 'socket.io-client';
 import { useRouter } from 'next/navigation';
 import { BedDouble, AlertCircle, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import ModalMinibar from '@/components/ModalMinibar';
 
 import { HabitacionCard, Habitacion } from '@/components/recepcion/HabitacionCard';
 import { CheckinModal } from '@/components/recepcion/CheckinModal';
+import { CheckoutModal } from '@/components/recepcion/CheckoutModal';
 import { useAuth } from '@/context/AuthContext';
 
 export default function RecepcionDashboard() {
@@ -19,6 +22,8 @@ export default function RecepcionDashboard() {
   const [isCheckinModalOpen, setIsCheckinModalOpen] = useState(false);
   const [selectedHabitacionId, setSelectedHabitacionId] = useState<number | null>(null);
   const [selectedMinibarHabitacion, setSelectedMinibarHabitacion] = useState<{ id: number; numero: number; estadiaId: number } | null>(null);
+  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
+  const [checkoutHabitacion, setCheckoutHabitacion] = useState<{ habitacionId: number, estadiaId: number, numero: number | string, tipo: string } | null>(null);
   
   const [isSubmittingCheckin, setIsSubmittingCheckin] = useState(false);
   
@@ -37,11 +42,12 @@ export default function RecepcionDashboard() {
     }
   }, [user, authLoading]);
 
+  // ─── Fetch habitaciones ────────────────────────────────────────────────────
   const fetchHabitaciones = async () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const token = localStorage.getItem('motel_token');
       if (!token) {
         router.push('/login');
@@ -49,9 +55,7 @@ export default function RecepcionDashboard() {
       }
 
       const res = await fetch('http://localhost:3000/habitaciones', {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` }
       });
 
       if (res.status === 401) {
@@ -63,6 +67,7 @@ export default function RecepcionDashboard() {
       if (!res.ok) {
         throw new Error('Error al cargar las habitaciones del servidor.');
       }
+
       const data = await res.json();
       setHabitaciones(data);
     } catch (err) {
@@ -73,6 +78,48 @@ export default function RecepcionDashboard() {
       }
     }
   };
+
+  // ─── WebSocket: actualización en tiempo real ───────────────────────────────
+  // Guardamos fetchHabitaciones en un ref para que los listeners del socket
+  // siempre llamen a la versión más reciente y no queden con un closure viejo.
+  const fetchRef = useRef(fetchHabitaciones);
+  useEffect(() => {
+    fetchRef.current = fetchHabitaciones;
+  });
+
+  const socketRef = useRef<Socket | null>(null);
+
+  useEffect(() => {
+    if (!user || (user.rol !== 'RECEPCION' && user.rol !== 'ADMIN')) return;
+
+    const socket = io('http://localhost:3000', {
+      transports: ['websocket', 'polling'],
+      reconnectionAttempts: 5,
+    });
+    socketRef.current = socket;
+
+    socket.on('connect', () => {
+      console.log('Socket conectado:', socket.id);
+    });
+
+    socket.on('habitacionOcupada', () => {
+      console.log('Evento recibido de cambio de habitación: habitacionOcupada');
+      fetchRef.current();
+    });
+
+    socket.on('habitacionLiberada', () => {
+      console.log('Evento recibido de cambio de habitación: habitacionLiberada');
+      fetchRef.current();
+    });
+
+    return () => {
+      socket.off('connect');
+      socket.off('habitacionOcupada');
+      socket.off('habitacionLiberada');
+      socket.disconnect();
+      socketRef.current = null;
+    };
+  }, [user]);
 
 
 
@@ -110,30 +157,42 @@ export default function RecepcionDashboard() {
         )
       );
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Error inesperado al marcar la habitación como limpia.');
+      toast.error(err instanceof Error ? err.message : 'Error inesperado al marcar la habitación como limpia.');
     } finally {
       setProcessingId(null);
     }
   };
 
-  const cerrarEImprimir = async (habitacion: Habitacion) => {
+  const openCheckoutModal = (habitacion: Habitacion) => {
+    const estadiaId = habitacion.estadias?.[0]?.id;
+    if (!estadiaId) {
+      toast.error('No hay una estadía activa para cerrar esta habitación.');
+      return;
+    }
+    setCheckoutHabitacion({
+      habitacionId: habitacion.id,
+      estadiaId,
+      numero: habitacion.numero,
+      tipo: habitacion.tipoHabitacion?.nombre || 'Habitación'
+    });
+    setIsCheckoutModalOpen(true);
+  };
+
+  const handleCheckoutConfirm = async (estadiaId: number, montoEfectivo: number, montoTarjeta: number, montoTransferencia: number) => {
+    if (!checkoutHabitacion) return;
+
     try {
-      const estadiaId = habitacion.estadias?.[0]?.id;
-      if (!estadiaId) {
-        throw new Error('No se encontró una estadía activa para esta habitación.');
-      }
-
       const token = localStorage.getItem('motel_token');
-      if (!token) {
-        throw new Error('No autorizado. Por favor inicie sesión.');
-      }
+      if (!token) throw new Error('No autorizado. Por favor inicie sesión.');
 
-      // 1. Finalizar estadía
+      // 1. Finalizar estadía con método de pago
       const patchRes = await fetch(`http://localhost:3000/estadia/${estadiaId}/finalizar`, {
         method: 'PATCH',
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ montoEfectivo, montoTarjeta, montoTransferencia })
       });
 
       if (!patchRes.ok) {
@@ -141,25 +200,26 @@ export default function RecepcionDashboard() {
         try {
           const errorData = await patchRes.json();
           errorMessage = errorData.message || errorMessage;
-        } catch (e) {
-          // Si no hay body JSON, se usa el mensaje por defecto
-        }
+        } catch (e) {}
         throw new Error(errorMessage);
       }
 
       // 2. Imprimir recibo
-      const res = await fetch(`http://localhost:3000/facturacion/recibo/${habitacion.id}`);
-      if (!res.ok) throw new Error('Error al generar el recibo');
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      window.open(url, '_blank');
-      setTimeout(() => window.URL.revokeObjectURL(url), 60000);
+      const res = await fetch(`http://localhost:3000/facturacion/recibo/${checkoutHabitacion.habitacionId}`);
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        setTimeout(() => window.URL.revokeObjectURL(url), 60000);
+      }
 
       // 3. Recargar dashboard
+      setIsCheckoutModalOpen(false);
+      setCheckoutHabitacion(null);
       fetchHabitaciones();
     } catch (err) {
       console.error(err);
-      alert(err instanceof Error ? err.message : 'Hubo un error al cerrar e imprimir el recibo.');
+      toast.error(err instanceof Error ? err.message : 'Hubo un error al cerrar la estadía.');
     }
   };
 
@@ -211,10 +271,10 @@ export default function RecepcionDashboard() {
       // Éxito
       setIsCheckinModalOpen(false);
       setSelectedHabitacionId(null);
-      alert('¡Check-in realizado con éxito!');
+      toast.success('¡Check-in realizado con éxito!');
       fetchHabitaciones(); // Recargar datos
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Error al realizar el check-in.');
+      toast.error(err instanceof Error ? err.message : 'Error al realizar el check-in.');
     } finally {
       setIsSubmittingCheckin(false);
     }
@@ -228,7 +288,7 @@ export default function RecepcionDashboard() {
   const openMinibarModal = (hab: Habitacion) => {
     const estadiaId = hab.estadias?.[0]?.id;
     if (!estadiaId) {
-      alert("No hay una estadía activa para abrir el minibar en esta habitación.");
+      toast.error("No hay una estadía activa para abrir el minibar en esta habitación.");
       return;
     }
     setSelectedMinibarHabitacion({ id: hab.id, numero: hab.numero, estadiaId });
@@ -320,7 +380,7 @@ export default function RecepcionDashboard() {
                 processingId={processingId}
                 onCheckinClick={openCheckinModal}
                 onMinibarClick={openMinibarModal}
-                onCheckoutClick={cerrarEImprimir}
+                onCheckoutClick={openCheckoutModal}
                 onLimpiezaClick={handleMarcarLimpia}
               />
             ))}
@@ -333,6 +393,16 @@ export default function RecepcionDashboard() {
         onClose={() => setIsCheckinModalOpen(false)}
         onSubmit={handleCheckin}
         isSubmitting={isSubmittingCheckin}
+      />
+
+      <CheckoutModal
+        isOpen={isCheckoutModalOpen}
+        onClose={() => setIsCheckoutModalOpen(false)}
+        habitacionId={checkoutHabitacion?.habitacionId || null}
+        estadiaId={checkoutHabitacion?.estadiaId || null}
+        numero={checkoutHabitacion?.numero || ''}
+        tipo={checkoutHabitacion?.tipo || ''}
+        onConfirm={handleCheckoutConfirm as any}
       />
 
       {/* Modal de Minibar */}

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
+import { formatColombiaDate } from "@/lib/formatters";
 import toast, { Toaster } from "react-hot-toast";
 import { Loader2, DollarSign, CreditCard, Landmark, CheckCircle, AlertCircle, Clock, Wallet } from "lucide-react";
 
@@ -161,7 +162,7 @@ export default function RecepcionCajaPage() {
                   </div>
                   <div>
                     <h2 className="text-2xl font-black text-gray-900">Cierre Exitoso</h2>
-                    <p className="text-gray-500">Reporte del sistema generado el {new Date(resultadoCierre.caja.fechaCierre).toLocaleString()}</p>
+                    <p className="text-gray-500">Reporte del sistema generado el {formatColombiaDate(resultadoCierre.caja.fechaCierre)}</p>
                   </div>
                </div>
 
@@ -247,7 +248,7 @@ export default function RecepcionCajaPage() {
                          <Clock className="w-6 h-6 text-indigo-400 mt-1" />
                          <div>
                             <span className="block text-xs font-bold uppercase text-indigo-400 tracking-wider">Hora Apertura</span>
-                            <span className="block text-lg font-black text-gray-900">{new Date(caja.fechaApertura).toLocaleTimeString()}</span>
+                            <span className="block text-lg font-black text-gray-900">{formatColombiaDate(caja.fechaApertura)}</span>
                          </div>
                       </div>
                       <div className="flex items-start gap-4 p-4 bg-white rounded-2xl shadow-sm border border-indigo-50">

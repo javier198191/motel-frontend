@@ -15,6 +15,7 @@ import {
     Wallet
 } from "lucide-react";
 import api from "@/lib/api";
+import { formatColombiaDate } from "@/lib/formatters";
 import { toast } from "react-hot-toast";
 
 interface FacturaRecord {
@@ -187,14 +188,7 @@ export default function DianInboxPage() {
                                             </div>
                                         </td>
                                         <td className="px-8 py-5 text-gray-600 font-medium whitespace-nowrap">
-                                            {/* Mapeo correcto de fechaInicio y formateo DD/MM/YYYY HH:mm */}
-                                            {factura.fechaInicio ? new Date(factura.fechaInicio).toLocaleString('es-CO', {
-                                                day: '2-digit',
-                                                month: '2-digit',
-                                                year: 'numeric',
-                                                hour: '2-digit',
-                                                minute: '2-digit'
-                                            }) : 'N/A'}
+                                            {formatColombiaDate(factura.fechaInicio)}
                                         </td>
                                         <td className="px-8 py-5">
                                             <div className="flex flex-col">

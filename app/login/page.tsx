@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { KeyRound, User, Loader2, AlertCircle } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { jwtDecode } from "jwt-decode";
+import { API_URL } from "@/src/config/api";
 
 export default function LoginPage() {
     const [nombre, setNombre] = useState("");
@@ -16,12 +17,13 @@ export default function LoginPage() {
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
+        console.log("Intentando conectar a:", process.env.NEXT_PUBLIC_API_URL);
+
         setLoading(true);
         setError(null);
 
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-            const res = await fetch(`${apiUrl}/auth/login`, {
+            const res = await fetch(`${API_URL}/auth/login`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

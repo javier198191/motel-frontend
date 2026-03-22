@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { AlertTriangle, Banknote, Lock, LogOut, Loader2, ArrowDownToLine } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { API_URL } from "@/src/config/api";
 
 interface CajaData {
     id: number;
@@ -43,7 +44,7 @@ export default function PanelCaja() {
         try {
             setIsLoading(true);
             const token = localStorage.getItem("motel_token");
-            const res = await fetch(`http://localhost:3000/caja/abierta?t=${Date.now()}`, {
+            const res = await fetch(`${API_URL}/caja/abierta?t=${Date.now()}`, {
                 headers: token ? { Authorization: `Bearer ${token}` } : {},
                 cache: 'no-store'
             });
@@ -92,7 +93,7 @@ export default function PanelCaja() {
             return;
         }
 
-            const res = await fetch("http://localhost:3000/caja/abrir", {
+            const res = await fetch(`${API_URL}/caja/abrir`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -133,7 +134,7 @@ export default function PanelCaja() {
         try {
             setIsRegisteringEgreso(true);
             const token = localStorage.getItem("motel_token");
-            const res = await fetch("http://localhost:3000/caja/egreso", {
+            const res = await fetch(`${API_URL}/caja/egreso`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -183,7 +184,7 @@ export default function PanelCaja() {
         try {
             setIsClosing(true);
             const token = localStorage.getItem("motel_token");
-            const res = await fetch(`http://localhost:3000/caja/cerrar`, {
+            const res = await fetch(`${API_URL}/caja/cerrar`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

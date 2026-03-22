@@ -11,6 +11,7 @@ import { HabitacionCard, Habitacion } from '@/components/recepcion/HabitacionCar
 import { CheckinModal } from '@/components/recepcion/CheckinModal';
 import { CheckoutModal } from '@/components/recepcion/CheckoutModal';
 import { useAuth } from '@/context/AuthContext';
+import { API_URL } from '@/src/config/api';
 
 export default function RecepcionDashboard() {
   const [habitaciones, setHabitaciones] = useState<Habitacion[]>([]);
@@ -54,7 +55,7 @@ export default function RecepcionDashboard() {
         return;
       }
 
-      const res = await fetch('http://localhost:3000/habitaciones', {
+      const res = await fetch(`${API_URL}/habitaciones`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -92,7 +93,7 @@ export default function RecepcionDashboard() {
   useEffect(() => {
     if (!user || (user.rol !== 'RECEPCION' && user.rol !== 'ADMIN')) return;
 
-    const socket = io('http://localhost:3000', {
+    const socket = io(API_URL, {
       transports: ['websocket', 'polling'],
       reconnectionAttempts: 5,
     });
@@ -133,7 +134,7 @@ export default function RecepcionDashboard() {
         return;
       }
 
-      const res = await fetch(`http://localhost:3000/habitaciones/${id}/limpiar`, {
+      const res = await fetch(`${API_URL}/habitaciones/${id}/limpiar`, {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`
@@ -186,7 +187,7 @@ export default function RecepcionDashboard() {
       if (!token) throw new Error('No autorizado. Por favor inicie sesión.');
 
       // 1. Finalizar estadía con método de pago
-      const patchRes = await fetch(`http://localhost:3000/estadia/${estadiaId}/finalizar`, {
+      const patchRes = await fetch(`${API_URL}/estadia/${estadiaId}/finalizar`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -205,7 +206,7 @@ export default function RecepcionDashboard() {
       }
 
       // 2. Imprimir recibo
-      const res = await fetch(`http://localhost:3000/facturacion/recibo/${checkoutHabitacion.habitacionId}`);
+      const res = await fetch(`${API_URL}/facturacion/recibo/${checkoutHabitacion.habitacionId}`);
       if (res.ok) {
         const blob = await res.blob();
         const url = window.URL.createObjectURL(blob);
@@ -246,7 +247,7 @@ export default function RecepcionDashboard() {
         throw new Error('No se pudo identificar al usuario de la sesión.');
       }
 
-      const res = await fetch('http://localhost:3000/estadia', {
+      const res = await fetch(`${API_URL}/estadia`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

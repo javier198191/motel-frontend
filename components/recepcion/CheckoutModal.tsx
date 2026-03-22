@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { X, CreditCard, Banknote, Landmark, Loader2, AlertCircle } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "react-hot-toast";
+import { API_URL } from "@/src/config/api";
 
 type MetodoPago = "EFECTIVO" | "TARJETA" | "TRANSFERENCIA";
 
@@ -41,7 +42,7 @@ export function CheckoutModal({ isOpen, onClose, habitacionId, estadiaId, numero
         try {
           const token = localStorage.getItem('motel_token');
           // Llamamos al backend para que nos dé el precio oficial con todo y horas extras
-          const res = await fetch(`http://localhost:3000/estadia/${estadiaId}/pre-checkout`, {
+          const res = await fetch(`${API_URL}/estadia/${estadiaId}/pre-checkout`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           

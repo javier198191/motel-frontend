@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { X, Loader2, ShoppingCart, AlertCircle, Package, Search, Plus, Minus, Trash2, Receipt } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { API_URL } from "@/src/config/api";
 
 interface Producto {
     id: number;
@@ -39,7 +40,7 @@ export default function ModalMinibar({ estadiaId, habitacionNumero, onClose, onS
                 setIsLoading(true);
                 setError(null);
                 const token = localStorage.getItem("motel_token");
-                const res = await fetch(`http://localhost:3000/producto/activos?t=${Date.now()}`, {
+                const res = await fetch(`${API_URL}/producto/activos?t=${Date.now()}`, {
                     headers: token ? { Authorization: `Bearer ${token}` } : {},
                     cache: "no-store",
                 });
@@ -134,7 +135,7 @@ export default function ModalMinibar({ estadiaId, habitacionNumero, onClose, onS
 
             // Crear un array de Promesas para POST de todos los consumos en paralelo
             const checkoutPromises = cart.map(item => {
-                return fetch("http://localhost:3000/consumo", {
+                return fetch(`${API_URL}/consumo`, {
                     method: "POST",
                     headers,
                     body: JSON.stringify({

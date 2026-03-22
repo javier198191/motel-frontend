@@ -8,6 +8,7 @@ import {
   X, ShieldAlert
 } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { API_URL } from "@/src/config/api";
 
 interface Producto {
   id: number;
@@ -46,7 +47,7 @@ export default function AdminProductosPage() {
          return;
       }
 
-      const res = await fetch(`http://localhost:3000/producto?t=${Date.now()}`, {
+      const res = await fetch(`${API_URL}/producto?t=${Date.now()}`, {
         headers: { Authorization: `Bearer ${token}` },
         cache: "no-store",
       });
@@ -88,7 +89,7 @@ export default function AdminProductosPage() {
     try {
       setIsSubmitting(true);
       const token = localStorage.getItem("motel_token");
-      const res = await fetch("http://localhost:3000/producto", {
+      const res = await fetch(`${API_URL}/producto`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -125,7 +126,7 @@ export default function AdminProductosPage() {
     try {
       setIsSubmitting(true);
       const token = localStorage.getItem("motel_token");
-      const res = await fetch(`http://localhost:3000/producto/${editingProducto.id}`, {
+      const res = await fetch(`${API_URL}/producto/${editingProducto.id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -160,7 +161,7 @@ export default function AdminProductosPage() {
     try {
       setIsSubmitting(true);
       const token = localStorage.getItem("motel_token");
-      const res = await fetch(`http://localhost:3000/producto/${stockProducto.id}/stock`, {
+      const res = await fetch(`${API_URL}/producto/${stockProducto.id}/stock`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

@@ -261,19 +261,6 @@ export default function RecepcionDashboard() {
         throw new Error('No autorizado. Por favor inicie sesión.');
       }
 
-      // Decodificar el JWT para obtener el ID del usuario (sub)
-      let usuarioId;
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        usuarioId = payload.sub;
-      } catch (e) {
-        throw new Error('Token inválido. Vuelva a iniciar sesión.');
-      }
-
-      if (!usuarioId) {
-        throw new Error('No se pudo identificar al usuario de la sesión.');
-      }
-
       const res = await fetch(`${API_URL}/estadia`, {
         method: 'POST',
         headers: {
@@ -282,8 +269,7 @@ export default function RecepcionDashboard() {
         },
         body: JSON.stringify({
           habitacionId: selectedHabitacionId,
-          usuarioId,
-          tipoServicio
+          tipoServicio: 'POR_HORAS'
         })
       });
 

@@ -10,6 +10,7 @@ export interface AuthUser {
     sub: number;       // ID del usuario
     nombre: string;    // Nombre
     rol: string;       // Rol (Ej: ADMIN, RECEPCION)
+    sedeId: string | number; // ID de la sede
 }
 
 // Interfaz del Contexto
@@ -17,7 +18,7 @@ interface AuthContextType {
     user: AuthUser | null;
     token: string | null;
     isLoading: boolean;
-    loginAction: (token: string) => void;
+    loginAction: (token: string, explicitSedeId?: string | number) => void;
     logoutAction: () => void;
 }
 
@@ -33,15 +34,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Restaurar sesión al recargar la página
     useEffect(() => {
         const storedToken = localStorage.getItem("motel_token");
+        const storedSedeId = localStorage.getItem("motel_sede_id");
         if (storedToken) {
             try {
                 // Decodifica el token en memoria sin hacer peticiones extra
                 const decoded = jwtDecode<AuthUser>(storedToken);
+                
+                // Si había un sedeId guardado manualmente, lo inyectamos al usuario
+                if (storedSedeId) {
+                    decoded.sedeId = isNaN(Number(storedSedeId)) ? storedSedeId : Number(storedSedeId);
+                }
+
                 setToken(storedToken);
                 setUser(decoded);
             } catch (error) {
                 console.error("Error restaurando sesión. Token inválido.");
                 localStorage.removeItem("motel_token");
+                localStorage.removeItem("motel_sede_id");
                 setToken(null);
                 setUser(null);
             }
@@ -58,10 +67,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // }, [user, isLoading, pathname, router]);
 
     // Función que se llamará en LoginPage al recibir el token exitoso
-    const loginAction = (newToken: string) => {
+    const loginAction = (newToken: string, explicitSedeId?: string | number) => {
         try {
             const decoded = jwtDecode<AuthUser>(newToken);
             localStorage.setItem("motel_token", newToken);
+            
+            // Si el sedeId viene fuera del token o queremos guardarlo explícitamente
+            const finalSedeId = explicitSedeId ?? decoded.sedeId;
+            if (finalSedeId) {
+                localStorage.setItem("motel_sede_id", finalSedeId.toString());
+                decoded.sedeId = finalSedeId;
+            }
+
             setToken(newToken);
             setUser(decoded);
         } catch (error) {
@@ -72,6 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Función centralizada para desloguear
     const logoutAction = () => {
         localStorage.removeItem("motel_token");
+        localStorage.removeItem("motel_sede_id");
         setToken(null);
         setUser(null);
         router.push("/login");

@@ -49,18 +49,30 @@ export default function RecepcionDashboard() {
       setLoading(true);
       setError(null);
 
+      // DEBUG SESION:
+      console.log('--- DEBUG RECEPCION DASHBOARD ---');
+      console.log("Mi Sede actual es:", user?.sedeId);
+      
       const token = localStorage.getItem('motel_token');
       if (!token) {
+        console.warn('Sin token en localStorage');
         router.push('/login');
         return;
+      }
+
+      if (user && !user.sedeId) {
+        console.error('ALERTA: El usuario NO tiene sedeId. Multitenancy roto.');
       }
 
       const res = await fetch(`${API_URL}/habitaciones`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      if (res.status === 401) {
-        localStorage.removeItem('motel_token');
+      if (res.status === 401 || res.status === 500) {
+        // En caso de 401 o 500 persistente, es probable que la sesión esté corrupta
+        // por cambios en la arquitectura del backend. Limpiamos y redirigimos.
+        console.error(`Error ${res.status} detectado. Forzando cierre de sesión...`);
+        localStorage.clear();
         router.push('/login');
         return;
       }
@@ -70,7 +82,14 @@ export default function RecepcionDashboard() {
       }
 
       const data = await res.json();
-      setHabitaciones(data);
+      
+      // FILTRO LOCAL DE SEGURIDAD (Multitenancy Seguro):
+      // Si el backend falla y manda habitaciones de otra sede, las filtramos aquí.
+      const filteredHabitaciones = data.filter((h: Habitacion) => 
+        !user?.sedeId || !h.sedeId || String(h.sedeId) === String(user.sedeId)
+      );
+      
+      setHabitaciones(filteredHabitaciones);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido al conectar con la API.');
     } finally {
@@ -101,15 +120,23 @@ export default function RecepcionDashboard() {
 
     socket.on('connect', () => {
       console.log('Socket conectado:', socket.id);
+      if (user?.sedeId) {
+        socket.emit('joinSede', user.sedeId);
+        console.log(`Unido a la sala de la sede: ${user.sedeId}`);
+      }
     });
 
-    socket.on('habitacionOcupada', () => {
+    socket.on('habitacionOcupada', (data?: { sedeId?: string }) => {
       console.log('Evento recibido de cambio de habitación: habitacionOcupada');
+      // Seguridad adicional: Verificar que la actualización pertenezca a la misma sede
+      if (data?.sedeId && data.sedeId !== user.sedeId) return;
       fetchRef.current();
     });
 
-    socket.on('habitacionLiberada', () => {
+    socket.on('habitacionLiberada', (data?: { sedeId?: string }) => {
       console.log('Evento recibido de cambio de habitación: habitacionLiberada');
+      // Seguridad adicional: Verificar que la actualización pertenezca a la misma sede
+      if (data?.sedeId && data.sedeId !== user.sedeId) return;
       fetchRef.current();
     });
 

@@ -1,14 +1,22 @@
 import { BedDouble, CheckCircle, Clock, AlertCircle, CalendarClock, CircleDollarSign, Key, ShoppingBag, Printer, Brush, Loader2 } from 'lucide-react';
+import TimerHabitacion from '@/src/components/TimerHabitacion';
+import { useAuth } from '@/context/AuthContext';
 
 export interface Habitacion {
   id: number;
   numero: number;
   estado: 'LIBRE' | 'OCUPADA' | 'LIMPIEZA';
+  sedeId: string | number;
   tipoHabitacion: {
     nombre: string;
     precioHora: number;
+    horasIncluidas?: number;
   };
-  estadias?: { id: number }[];
+  estadias?: { 
+    id: number;
+    fechaInicio?: string;
+    sedeId?: string | number;
+  }[];
 }
 
 interface HabitacionCardProps {
@@ -28,6 +36,15 @@ export function HabitacionCard({
   onCheckoutClick,
   onLimpiezaClick,
 }: HabitacionCardProps) {
+  
+  const { user } = useAuth();
+  
+  console.log('HabitacionCard - hab data:', JSON.stringify(hab, null, 2));
+  
+  const estadiaActiva = hab.estadias?.[0];
+  
+  // Seguridad extra: verificar que la estadía pertenezca a la misma sede
+  const esDeMiSede = !estadiaActiva?.sedeId || !user?.sedeId || String(estadiaActiva.sedeId) === String(user.sedeId);
 
   const getCardStyles = (estado: Habitacion['estado']) => {
     switch (estado) {
@@ -70,7 +87,7 @@ export function HabitacionCard({
 
   return (
     <div
-      className={`flex flex-col rounded-2xl p-6 backdrop-blur-sm transform hover:-translate-y-1 hover:z-10 ${getCardStyles(
+      className={`flex flex-col rounded-2xl p-6 backdrop-blur-sm transform hover:-translate-y-1 hover:z-10 overflow-visible ${getCardStyles(
         hab.estado
       )}`}
     >
@@ -85,7 +102,7 @@ export function HabitacionCard({
         </div>
       </div>
 
-      <div className="mt-2 mb-6">
+      <div className="mt-2 mb-6 flex flex-col gap-3 items-start">
         <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-bold bg-white/80 shadow-sm backdrop-blur-md border border-white/50 ${getStatusTextColor(hab.estado)}`}>
           <span className="relative flex h-2.5 w-2.5">
             <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${hab.estado === 'LIBRE' ? 'bg-emerald-400' : hab.estado === 'OCUPADA' ? 'bg-rose-400' : 'bg-amber-400'}`}></span>
@@ -93,6 +110,22 @@ export function HabitacionCard({
           </span>
           {hab.estado}
         </div>
+
+        {/* FORZAR RENDER SI ESTÁ OCUPADA */}
+        {hab.estado === 'OCUPADA' && esDeMiSede && (
+          <div className="w-full mt-2" style={{ zIndex: 20 }}>
+            {estadiaActiva?.fechaInicio ? (
+              <TimerHabitacion 
+                fechaInicio={estadiaActiva.fechaInicio} 
+                horasIncluidas={hab.tipoHabitacion.horasIncluidas || 4} 
+              />
+            ) : (
+              <div className="text-[10px] text-rose-400 font-bold italic">
+                (Sin fecha de inicio activa)
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Detalles de la habitación */}

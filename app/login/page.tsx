@@ -36,10 +36,11 @@ export default function LoginPage() {
             }
 
             const data = await res.json();
+            console.log("Login - Respuesta completa del backend:", data);
 
             if (data.access_token) {
                 // Actualiza estado global y localStorage
-                loginAction(data.access_token);
+                loginAction(data.access_token, data.sedeId);
                 
                 // Decodifica para decidir la redirección
                 const decoded: any = jwtDecode(data.access_token);

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { AlertTriangle, Banknote, Lock, LogOut, Loader2, ArrowDownToLine } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { API_URL } from "@/src/config/api";
+import { useAuth } from "@/context/AuthContext";
 
 interface CajaData {
     id: number;
@@ -18,6 +19,7 @@ interface CajaData {
 }
 
 export default function PanelCaja() {
+    const { user, logoutAction } = useAuth();
     const [caja, setCaja] = useState<CajaData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -48,6 +50,10 @@ export default function PanelCaja() {
                 headers: token ? { Authorization: `Bearer ${token}` } : {},
                 cache: 'no-store'
             });
+            if (res.status === 401) {
+                logoutAction();
+                return;
+            }
             if (!res.ok) {
                 if (res.status === 404) {
                     setCaja(null);
@@ -100,11 +106,15 @@ export default function PanelCaja() {
                     "Authorization": `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    usuarioId: 1,
-                    saldoInicial: Number(baseInicial),
-                    turno
+                    baseInicial: Number(baseInicial)
                 }),
             });
+            if (res.status === 401 || res.status === 500) {
+                console.warn(`PanelCaja - Error ${res.status}. Forzando reset de sesión.`);
+                localStorage.clear();
+                logoutAction();
+                return;
+            }
             if (res.ok) {
                 setBaseInicial("");
                 setTurno("DIURNO");
@@ -146,6 +156,10 @@ export default function PanelCaja() {
                     cajaId: caja?.id
                 }),
             });
+            if (res.status === 401) {
+                logoutAction();
+                return;
+            }
             if (res.ok) {
                 setIsEgresoModalOpen(false);
                 setConceptoEgreso("");
@@ -196,6 +210,10 @@ export default function PanelCaja() {
                     declaradoTransferencia: Number(transferenciaDeclarado),
                 }),
             });
+            if (res.status === 401) {
+                logoutAction();
+                return;
+            }
             if (res.ok) {
                 const data = await res.json();
                 setResultadoCierre(data);

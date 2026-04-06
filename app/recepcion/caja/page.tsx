@@ -80,7 +80,6 @@ export default function RecepcionCajaPage() {
     try {
       setIsSubmitting(true);
       const payload = {
-         usuarioId: user?.sub,
          baseInicial: Number(baseInicial)
       };
       await api.post("/caja/abrir", payload);

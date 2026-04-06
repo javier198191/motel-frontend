@@ -269,7 +269,7 @@ export default function RecepcionDashboard() {
         },
         body: JSON.stringify({
           habitacionId: selectedHabitacionId,
-          tipoServicio: 'POR_HORAS'
+          tipoServicio: tipoServicio
         })
       });
 

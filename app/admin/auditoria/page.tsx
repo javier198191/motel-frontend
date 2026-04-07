@@ -12,7 +12,6 @@ import {
   ShieldAlert, 
   Loader2, 
   Search,
-  Filter,
   CheckCircle2,
   XCircle,
   Banknote,
@@ -45,7 +44,6 @@ export default function AuditoriaPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Redirección si no es Admin
     if (user && user.rol !== 'ADMIN') {
       router.push('/recepcion');
     }
@@ -68,19 +66,14 @@ export default function AuditoriaPage() {
 
   const fetchLogs = async () => {
     if (!token) return;
-
     try {
       setLoading(true);
       const response = await fetch(`${API_URL}/auditoria`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: { 'Authorization': `Bearer ${token}` }
       });
-
       if (!response.ok) {
         throw new Error('No se pudieron cargar los registros de auditoría');
       }
-
       const data = await response.json();
       setLogs(data);
     } catch (err: any) {
@@ -96,8 +89,6 @@ export default function AuditoriaPage() {
       fetchStats();
     }
   }, [token, user]);
-
-
 
   const getActionStyles = (action: string) => {
     const act = action.toUpperCase();

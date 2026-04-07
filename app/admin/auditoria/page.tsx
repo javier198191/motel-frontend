@@ -30,11 +30,19 @@ interface LogAuditoria {
   sedeId: number;
 }
 
+interface StatsDashboard {
+  ventasHoy: number;
+  ocupacion: number;
+  cajaActual: number;
+}
+
 export default function AuditoriaPage() {
   const { user, token } = useAuth();
   const router = useRouter();
   const [logs, setLogs] = useState<LogAuditoria[]>([]);
+  const [stats, setStats] = useState<StatsDashboard | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingEgreso, setLoadingEgreso] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -44,41 +52,94 @@ export default function AuditoriaPage() {
     }
   }, [user, router]);
 
-  useEffect(() => {
-    const fetchLogs = async () => {
-      if (!token) return;
-
-      try {
-        setLoading(true);
-        const response = await fetch(`${API_URL}/auditoria`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error('No se pudieron cargar los registros de auditoría');
-        }
-
+  const fetchStats = async () => {
+    if (!token) return;
+    try {
+      const response = await fetch(`${API_URL}/dashboard/stats`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
         const data = await response.json();
-        setLogs(data);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
+        setStats(data);
       }
-    };
+    } catch (err) {
+      console.error('Error fetching stats:', err);
+    }
+  };
 
+  const fetchLogs = async () => {
+    if (!token) return;
+
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_URL}/auditoria`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('No se pudieron cargar los registros de auditoría');
+      }
+
+      const data = await response.json();
+      setLogs(data);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     if (token && user?.rol === 'ADMIN') {
       fetchLogs();
+      fetchStats();
     }
   }, [token, user]);
+
+  const handleEgreso = async () => {
+    const concepto = prompt('Concepto del egreso:');
+    if (!concepto) return;
+    const montoStr = prompt('Monto del egreso:');
+    if (!montoStr || isNaN(Number(montoStr))) {
+        alert('Monto inválido');
+        return;
+    }
+    const monto = Number(montoStr);
+
+    try {
+        setLoadingEgreso(true);
+        const res = await fetch(`${API_URL}/caja/egreso`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ concepto, monto })
+        });
+
+        if (res.ok) {
+            alert('Egreso registrado correctamente');
+            fetchLogs();
+            fetchStats();
+        } else {
+            const errData = await res.json();
+            alert(`Error: ${errData.message || 'No se pudo registrar el egreso'}`);
+        }
+    } catch (error) {
+        alert('Error al conectar con el servidor');
+    } finally {
+        setLoadingEgreso(false);
+    }
+  };
 
   const getActionStyles = (action: string) => {
     const act = action.toUpperCase();
     if (act.includes('CHECK_IN')) return 'bg-emerald-50 text-emerald-700 border-emerald-200';
     if (act.includes('CHECK_OUT')) return 'bg-rose-50 text-rose-700 border-rose-200';
-    if (act.includes('COBRO') || act.includes('PAGO')) return 'bg-amber-50 text-amber-700 border-amber-200';
+    if (act.includes('EGRESO')) return 'bg-orange-600 text-white border-orange-700 font-black';
+    if (act.includes('COBRO') || act.includes('PAGO')) return 'bg-green-500 text-white border-green-600 font-bold';
     return 'bg-slate-50 text-slate-700 border-slate-200';
   };
 
@@ -86,7 +147,7 @@ export default function AuditoriaPage() {
     const act = action.toUpperCase();
     if (act.includes('CHECK_IN')) return <CheckCircle2 className="w-3 h-3" />;
     if (act.includes('CHECK_OUT')) return <XCircle className="w-3 h-3" />;
-    if (act.includes('COBRO') || act.includes('PAGO')) return <Banknote className="w-3 h-3" />;
+    if (act.includes('COBRO') || act.includes('PAGO') || act.includes('EGRESO')) return <Banknote className="w-3 h-3" />;
     return <Info className="w-3 h-3" />;
   };
 
@@ -125,14 +186,25 @@ export default function AuditoriaPage() {
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
       <main className="max-w-3xl mx-auto px-4 pt-8">
-        <div className="flex flex-col gap-1 mb-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-200">
-              <History className="w-6 h-6 text-white" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-200">
+                <History className="w-6 h-6 text-white" />
+              </div>
+              <h1 className="text-3xl font-black text-slate-900 tracking-tight">Panel de Control</h1>
             </div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Panel de Control</h1>
+            <p className="text-slate-500 font-bold ml-12">Resumen financiero y auditoría</p>
           </div>
-          <p className="text-slate-500 font-bold ml-12">Resumen financiero y auditoría</p>
+          
+          <button 
+            onClick={handleEgreso}
+            disabled={loadingEgreso}
+            className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-orange-200 transition-all active:scale-95 disabled:bg-orange-300"
+          >
+            {loadingEgreso ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wallet className="w-4 h-4" />}
+            Registrar Salida de Dinero
+          </button>
         </div>
 
         {/* Dashboard Financiero Rápido */}
@@ -143,7 +215,9 @@ export default function AuditoriaPage() {
             </div>
             <div className="flex flex-col">
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ventas Hoy</span>
-              <span className="text-lg font-black text-slate-900">$---.---</span>
+              <span className="text-lg font-black text-slate-900">
+                {stats ? `$${stats.ventasHoy.toLocaleString()}` : <div className="h-6 w-20 bg-slate-100 animate-pulse rounded" />}
+              </span>
             </div>
           </div>
           <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3">
@@ -152,7 +226,9 @@ export default function AuditoriaPage() {
             </div>
             <div className="flex flex-col">
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ocupación</span>
-              <span className="text-lg font-black text-slate-900">--%</span>
+              <span className="text-lg font-black text-slate-900">
+                 {stats ? `${stats.ocupacion}%` : <div className="h-6 w-12 bg-slate-100 animate-pulse rounded" />}
+              </span>
             </div>
           </div>
           <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3">
@@ -161,7 +237,9 @@ export default function AuditoriaPage() {
             </div>
             <div className="flex flex-col">
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Caja Actual</span>
-              <span className="text-lg font-black text-slate-900">$---.---</span>
+              <span className="text-lg font-black text-slate-900">
+                {stats ? `$${stats.cajaActual.toLocaleString()}` : <div className="h-6 w-20 bg-slate-100 animate-pulse rounded" />}
+              </span>
             </div>
           </div>
         </div>
@@ -204,7 +282,7 @@ export default function AuditoriaPage() {
                   className="group bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-md hover:border-indigo-100 transition-all active:scale-[0.98]"
                 >
                   <div className="flex justify-between items-start mb-3">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase border ${getActionStyles(log.accion)}`}>
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase border transition-colors ${getActionStyles(log.accion)}`}>
                       {getActionIcon(log.accion)}
                       {log.accion}
                     </span>

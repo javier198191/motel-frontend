@@ -42,7 +42,6 @@ export default function AuditoriaPage() {
   const [logs, setLogs] = useState<LogAuditoria[]>([]);
   const [stats, setStats] = useState<StatsDashboard | null>(null);
   const [loading, setLoading] = useState(true);
-  const [loadingEgreso, setLoadingEgreso] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -98,41 +97,7 @@ export default function AuditoriaPage() {
     }
   }, [token, user]);
 
-  const handleEgreso = async () => {
-    const concepto = prompt('Concepto del egreso:');
-    if (!concepto) return;
-    const montoStr = prompt('Monto del egreso:');
-    if (!montoStr || isNaN(Number(montoStr))) {
-        alert('Monto inválido');
-        return;
-    }
-    const monto = Number(montoStr);
 
-    try {
-        setLoadingEgreso(true);
-        const res = await fetch(`${API_URL}/caja/egreso`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ concepto, monto })
-        });
-
-        if (res.ok) {
-            alert('Egreso registrado correctamente');
-            fetchLogs();
-            fetchStats();
-        } else {
-            const errData = await res.json();
-            alert(`Error: ${errData.message || 'No se pudo registrar el egreso'}`);
-        }
-    } catch (error) {
-        alert('Error al conectar con el servidor');
-    } finally {
-        setLoadingEgreso(false);
-    }
-  };
 
   const getActionStyles = (action: string) => {
     const act = action.toUpperCase();
@@ -186,25 +151,14 @@ export default function AuditoriaPage() {
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
       <main className="max-w-3xl mx-auto px-4 pt-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-200">
-                <History className="w-6 h-6 text-white" />
-              </div>
-              <h1 className="text-3xl font-black text-slate-900 tracking-tight">Panel de Control</h1>
+        <div className="flex flex-col gap-1 mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-200">
+              <History className="w-6 h-6 text-white" />
             </div>
-            <p className="text-slate-500 font-bold ml-12">Resumen financiero y auditoría</p>
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Panel de Control</h1>
           </div>
-          
-          <button 
-            onClick={handleEgreso}
-            disabled={loadingEgreso}
-            className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-orange-200 transition-all active:scale-95 disabled:bg-orange-300"
-          >
-            {loadingEgreso ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wallet className="w-4 h-4" />}
-            Registrar Salida de Dinero
-          </button>
+          <p className="text-slate-500 font-bold ml-12">Resumen financiero y auditoría</p>
         </div>
 
         {/* Dashboard Financiero Rápido */}

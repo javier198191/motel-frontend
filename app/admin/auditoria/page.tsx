@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { API_URL } from '@/src/config/api';
-import Navbar from '@/components/Navbar';
 import { 
   History, 
   User, 
@@ -13,7 +12,13 @@ import {
   ShieldAlert, 
   Loader2, 
   Search,
-  Filter
+  Filter,
+  CheckCircle2,
+  XCircle,
+  Banknote,
+  TrendingUp,
+  Percent,
+  Wallet
 } from 'lucide-react';
 
 interface LogAuditoria {
@@ -72,9 +77,17 @@ export default function AuditoriaPage() {
   const getActionStyles = (action: string) => {
     const act = action.toUpperCase();
     if (act.includes('CHECK_IN')) return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-    if (act.includes('CHECK_OUT')) return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+    if (act.includes('CHECK_OUT')) return 'bg-rose-50 text-rose-700 border-rose-200';
     if (act.includes('COBRO') || act.includes('PAGO')) return 'bg-amber-50 text-amber-700 border-amber-200';
     return 'bg-slate-50 text-slate-700 border-slate-200';
+  };
+
+  const getActionIcon = (action: string) => {
+    const act = action.toUpperCase();
+    if (act.includes('CHECK_IN')) return <CheckCircle2 className="w-3 h-3" />;
+    if (act.includes('CHECK_OUT')) return <XCircle className="w-3 h-3" />;
+    if (act.includes('COBRO') || act.includes('PAGO')) return <Banknote className="w-3 h-3" />;
+    return <Info className="w-3 h-3" />;
   };
 
   const formatFecha = (fechaStr: string) => {
@@ -111,18 +124,49 @@ export default function AuditoriaPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
-      <Navbar />
-      
       <main className="max-w-3xl mx-auto px-4 pt-8">
-        <div className="flex flex-col gap-1 mb-8">
+        <div className="flex flex-col gap-1 mb-6">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-200">
               <History className="w-6 h-6 text-white" />
             </div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Registro de Auditoría</h1>
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Panel de Control</h1>
           </div>
-          <p className="text-slate-500 font-bold ml-12">Monitoreo de movimientos en tiempo real</p>
+          <p className="text-slate-500 font-bold ml-12">Resumen financiero y auditoría</p>
         </div>
+
+        {/* Dashboard Financiero Rápido */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8">
+          <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3">
+            <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
+              <TrendingUp className="w-5 h-5" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ventas Hoy</span>
+              <span className="text-lg font-black text-slate-900">$---.---</span>
+            </div>
+          </div>
+          <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3">
+            <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+              <Percent className="w-5 h-5" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ocupación</span>
+              <span className="text-lg font-black text-slate-900">--%</span>
+            </div>
+          </div>
+          <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3">
+            <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
+              <Wallet className="w-5 h-5" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Caja Actual</span>
+              <span className="text-lg font-black text-slate-900">$---.---</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="h-px bg-slate-200 w-full mb-8"></div>
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 animate-in fade-in duration-500">
@@ -145,6 +189,9 @@ export default function AuditoriaPage() {
           </div>
         ) : (
           <div className="space-y-4 animate-in slide-in-from-bottom-4 duration-500">
+            <h2 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
+              <History className="w-4 h-4" /> Movimientos Recientes
+            </h2>
             {logs.length === 0 ? (
               <div className="bg-white border-2 border-dashed border-slate-200 p-12 rounded-3xl text-center">
                 <Search className="w-10 h-10 text-slate-300 mx-auto mb-3" />
@@ -157,7 +204,8 @@ export default function AuditoriaPage() {
                   className="group bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-md hover:border-indigo-100 transition-all active:scale-[0.98]"
                 >
                   <div className="flex justify-between items-start mb-3">
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase border ${getActionStyles(log.accion)}`}>
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase border ${getActionStyles(log.accion)}`}>
+                      {getActionIcon(log.accion)}
                       {log.accion}
                     </span>
                     <div className="flex items-center gap-1.5 text-slate-400">
@@ -170,13 +218,13 @@ export default function AuditoriaPage() {
                     {log.detalles}
                   </p>
 
-                  <div className="flex items-center gap-2 pt-4 border-t border-slate-50 italic">
-                    <div className="p-1.5 bg-slate-50 rounded-lg">
+                  <div className="flex items-center gap-2 p-3 bg-slate-50/80 border border-slate-100 rounded-xl">
+                    <div className="p-1.5 bg-white rounded-lg shadow-sm">
                       <User className="w-4 h-4 text-slate-400" />
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider leading-none">Responsable</span>
-                      <span className="text-sm font-black text-slate-700">{log.usuario}</span>
+                      <span className="text-[9px] text-slate-400 font-black uppercase tracking-wider leading-none mb-0.5">Responsable</span>
+                      <span className="text-sm font-black text-slate-900">{log.usuario}</span>
                     </div>
                   </div>
                 </div>

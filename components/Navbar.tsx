@@ -30,6 +30,12 @@ export default function Navbar() {
             label: "Facturación DIAN",
             icon: <FileText className="w-5 h-5" />,
             roles: ['ADMIN', 'RECEPCION']
+        },
+        {
+            href: "/admin/auditoria",
+            label: "Auditoría",
+            icon: <FileText className="w-5 h-5" />,
+            roles: ['ADMIN']
         }
     ];
 

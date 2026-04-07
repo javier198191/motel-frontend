@@ -5,9 +5,10 @@ import React, { useState, useEffect } from 'react';
 interface TimerHabitacionProps {
   fechaInicio: string | Date;
   horasIncluidas: number;
+  tipoServicio?: string;
 }
 
-const TimerHabitacion: React.FC<TimerHabitacionProps> = ({ fechaInicio, horasIncluidas }) => {
+const TimerHabitacion: React.FC<TimerHabitacionProps> = ({ fechaInicio, horasIncluidas, tipoServicio }) => {
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [isOverdue, setIsOverdue] = useState<boolean>(false);
 
@@ -23,7 +24,8 @@ const TimerHabitacion: React.FC<TimerHabitacionProps> = ({ fechaInicio, horasInc
       }
       
       const now = new Date().getTime();
-      const includedMs = horasIncluidas * 60 * 60 * 1000;
+      const horasLimite = tipoServicio === 'AMANECIDA' ? 12 : (horasIncluidas || 4);
+      const includedMs = horasLimite * 60 * 60 * 1000;
       const end = start + includedMs;
       
       const diff = end - now;
@@ -37,7 +39,7 @@ const TimerHabitacion: React.FC<TimerHabitacionProps> = ({ fechaInicio, horasInc
     const interval = setInterval(calculateTime, 60000); // Actualiza cada minuto
 
     return () => clearInterval(interval);
-  }, [fechaInicio, horasIncluidas]);
+  }, [fechaInicio, horasIncluidas, tipoServicio]);
 
   const formatTime = (minutes: number) => {
     const absMinutes = Math.abs(minutes);

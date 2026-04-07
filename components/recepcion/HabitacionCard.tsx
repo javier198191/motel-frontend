@@ -16,6 +16,7 @@ export interface Habitacion {
     id: number;
     fechaInicio?: string;
     sedeId?: string | number;
+    tipoServicio?: string;
   }[];
 }
 
@@ -118,6 +119,7 @@ export function HabitacionCard({
               <TimerHabitacion 
                 fechaInicio={estadiaActiva.fechaInicio} 
                 horasIncluidas={hab.tipoHabitacion.horasIncluidas || 4} 
+                tipoServicio={estadiaActiva.tipoServicio}
               />
             ) : (
               <div className="text-[10px] text-rose-400 font-bold italic">

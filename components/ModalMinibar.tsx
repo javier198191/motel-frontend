@@ -292,7 +292,7 @@ export default function ModalMinibar({ estadiaId, habitacionNumero, onClose, onS
                     </div>
 
                     {/* RIGHT COLUMN: SHOPPING CART */}
-                    <div className="w-full lg:w-[400px] flex flex-col bg-white shrink-0 z-20 shadow-[-10px_0_15px_-5px_rgba(0,0,0,0.05)]">
+                    <div className="w-full lg:w-96 flex flex-col bg-white shrink-0 z-20 shadow-[-10px_0_15px_-5px_rgba(0,0,0,0.05)]">
 
                         {/* Cart Header */}
                         <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 shrink-0">

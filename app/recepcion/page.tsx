@@ -310,7 +310,7 @@ export default function RecepcionDashboard() {
 
   if (authLoading || loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50">
         <Loader2 className="w-12 h-12 animate-spin text-indigo-600 mb-4" />
         <p className="text-lg text-gray-600 font-bold animate-pulse">Cargando Tablero de Recepción...</p>
       </div>
@@ -319,7 +319,7 @@ export default function RecepcionDashboard() {
 
   if (isForbidden) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center font-sans p-6">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center font-sans p-6">
         <div className="bg-white p-10 max-w-lg w-full rounded-3xl shadow-xl border border-red-100 flex flex-col items-center text-center">
           <AlertCircle className="w-20 h-20 text-red-500 mb-6" />
           <h1 className="text-3xl font-black text-gray-900 mb-2">Acceso Restringido</h1>
@@ -332,7 +332,7 @@ export default function RecepcionDashboard() {
 
   if (error !== null) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-6">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 p-6">
         <div className="bg-red-50 border-2 border-red-200 text-red-800 px-8 py-8 rounded-2xl flex flex-col items-center shadow-sm max-w-md w-full text-center">
           <AlertCircle className="w-14 h-14 mb-4 text-red-500" />
           <h2 className="text-xl font-bold mb-2">Error de conexión</h2>
@@ -349,7 +349,7 @@ export default function RecepcionDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 md:p-10 font-sans text-gray-900">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-10 font-sans text-gray-900 w-full overflow-x-hidden">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header Section */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 bg-white p-8 rounded-2xl shadow-sm border border-gray-100">

@@ -36,6 +36,18 @@ export default function Navbar() {
             label: "Auditoría",
             icon: <FileText className="w-5 h-5" />,
             roles: ['ADMIN']
+        },
+        {
+            href: "/admin/habitaciones",
+            label: "Habitaciones",
+            icon: <Lock className="w-5 h-5" />,
+            roles: ['ADMIN']
+        },
+        {
+            href: "/admin/productos",
+            label: "Inventario",
+            icon: <Package className="w-5 h-5" />,
+            roles: ['ADMIN']
         }
     ];
 
@@ -50,22 +62,22 @@ export default function Navbar() {
     return (
         <nav className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between h-16">
-                    <div className="flex w-full items-center gap-6">
-                        <div className="flex-shrink-0 flex items-center mr-4">
+                <div className="flex items-center justify-between h-auto py-2 md:h-16 gap-4">
+                    <div className="flex flex-col md:flex-row w-full items-start md:items-center gap-2 md:gap-6 overflow-hidden">
+                        <div className="flex-shrink-0 flex items-center px-4 md:px-0">
                             <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                                 MotelAdmin
                             </span>
                         </div>
 
-                        <div className="flex space-x-2">
+                        <div className="flex overflow-x-auto no-scrollbar whitespace-nowrap items-center gap-2 px-4 pb-2 md:pb-0 w-full snap-x">
                             {allowedLinks.map((link) => {
                                 const isActive = pathname === link.href;
                                 return (
                                     <Link
                                         key={link.href}
                                         href={link.href}
-                                        className={`inline-flex items-center gap-2 px-4 py-2 mt-1 rounded-lg text-sm font-bold transition-all ${isActive
+                                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all snap-start ${isActive
                                                 ? "bg-slate-800 text-white shadow-sm pointer-events-none"
                                                 : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                                             }`}
@@ -82,34 +94,8 @@ export default function Navbar() {
 
                     {/* Right side: Secondary Links, User Profile & Logout */}
                     <div className="flex items-center gap-4">
-                        {/* Admin Links (Discreet) */}
-                        <div className="hidden sm:flex items-center gap-2">
-                            <Link
-                                href="/admin/habitaciones"
-                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
-                                    pathname === "/admin/habitaciones"
-                                        ? "bg-indigo-50 border-indigo-200 text-indigo-700 shadow-sm"
-                                        : "bg-white border-gray-200 text-gray-500 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300"
-                                }`}
-                                title="Habitaciones (Solo Admin)"
-                            >
-                                <Lock className="w-3.5 h-3.5 opacity-70" />
-                                <span>Habitaciones</span>
-                            </Link>
+                        {/* Admin Links Integrated in main scrollable div above */}
 
-                            <Link
-                                href="/admin/productos"
-                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
-                                    pathname === "/admin/productos"
-                                        ? "bg-indigo-50 border-indigo-200 text-indigo-700 shadow-sm"
-                                        : "bg-white border-gray-200 text-gray-500 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300"
-                                }`}
-                                title="Inventario Minibar (Solo Admin)"
-                            >
-                                <Lock className="w-3.5 h-3.5 opacity-70" />
-                                <span>Inventario</span>
-                            </Link>
-                        </div>
 
                         <div className="w-px h-8 bg-gray-200 hidden sm:block"></div>
 

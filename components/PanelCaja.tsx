@@ -337,7 +337,7 @@ export default function PanelCaja() {
 
     return (
         <>
-            <div className="bg-white rounded-xl shadow-md p-6 border-t-4 border-teal-500">
+            <div className="bg-white rounded-xl shadow-md p-4 md:p-6 border-t-4 border-teal-500 w-full">
                 <div className="flex items-center gap-3 mb-6">
                     <div className="p-3 bg-teal-100 rounded-full text-teal-600">
                         <Banknote className="w-6 h-6" />
@@ -366,7 +366,7 @@ export default function PanelCaja() {
                 {/* Desglose por método de pago */}
                 <div className="mb-6">
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Desglose por método de cobro</p>
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 flex flex-col items-center gap-1">
                             <span className="text-lg">💵</span>
                             <p className="text-xs font-bold text-emerald-700 uppercase">Efectivo</p>

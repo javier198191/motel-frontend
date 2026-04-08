@@ -140,8 +140,8 @@ export default function AuditoriaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20">
-      <main className="max-w-3xl mx-auto px-4 pt-8">
+    <div className="min-h-screen bg-slate-50 pb-20 w-full overflow-x-hidden">
+      <main className="max-w-3xl mx-auto px-4 pt-8 w-full">
         <div className="flex flex-col gap-1 mb-6">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-200">
@@ -153,7 +153,7 @@ export default function AuditoriaPage() {
         </div>
 
         {/* Dashboard Financiero Rápido */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-8">
           <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3">
             <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
               <TrendingUp className="w-5 h-5" />
